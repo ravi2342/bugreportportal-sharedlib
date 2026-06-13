@@ -9,7 +9,7 @@ This library abstracts common pipeline operations into reusable groovy functions
 ## Structure
 
 ```
-jenkins-shared-library/
+bugreportportal-sharedlib/
 ├── vars/                          # Global variables (entry points)
 │   ├── gitCheckout.groovy         # Git repository checkout
 │   ├── preflightChecks.groovy     # Verify required tools
@@ -22,9 +22,7 @@ jenkins-shared-library/
 │   ├── dockerPush.groovy          # Push image to registry
 │   ├── k8sDeploy.groovy           # Deploy to Kubernetes
 │   └── notifyStatus.groovy        # Send build notifications
-├── src/
-│   └── com/bugreportportal/       # Shared Groovy classes
-│       └── Common.groovy          # Utility functions
+├── test/                          # Test scaffolding
 └── README.md                      # This file
 ```
 
@@ -155,17 +153,19 @@ pipeline {
 ## Function Reference
 
 ### gitCheckout(Map config)
-Checks out application repository
+Clones the application repository into a subdirectory.
 
 **Parameters:**
-- `branch` (String): Git branch to check out (default: 'master')
-- `repoUrl` (String): Repository URL
+- `branch` (String): Git branch to check out (default: `'master'`)
+- `repoUrl` (String): Repository URL (required)
+- `targetDir` (String): Subdirectory to clone into (default: `'repo'`). Must not already exist, or `git clone` will fail.
 
 **Example:**
 ```groovy
 gitCheckout(
-    branch: 'develop',
-    repoUrl: 'https://github.com/ravi2342/bugreportportal.git'
+    branch: 'master',
+    repoUrl: 'https://github.com/ravi2342/bugreportportal.git',
+    targetDir: 'app'
 )
 ```
 
@@ -236,8 +236,8 @@ sonarScan(
 Builds Docker image
 
 **Parameters:**
-- `imageTag` (String): Full image tag (e.g., 'myregistry/app:1.0-123')
-- `dockerfile` (String): Path to build directory (default: 'app')
+- `imageTag` (String): Full image tag, e.g. `'myregistry/app:1.0-123'` (default: `'bug-report-portal:latest'`)
+- `dockerfile` (String): Path to build context directory (default: `'app'`)
 
 **Example:**
 ```groovy
@@ -310,11 +310,11 @@ k8sDeploy(
 Sends build status notifications
 
 **Parameters:**
-- `buildStatus` (String): Build status ('SUCCESS' or 'FAILED')
-- `buildNumber` (String): Build number
-- `jobName` (String): Job name
-- `imageTag` (String): Docker image tag deployed
-- `deployed` (Boolean): Whether deployment occurred
+- `buildStatus` (String): Build status, e.g. `'SUCCESS'` or `'FAILED'` (default: `'SUCCESS'`)
+- `buildNumber` (String): Build number (default: `env.BUILD_NUMBER`)
+- `jobName` (String): Job name (default: `env.JOB_NAME`)
+- `imageTag` (String): Docker image tag deployed (default: `''`)
+- `deployed` (Boolean): Whether deployment occurred (default: `false`)
 
 **Example:**
 ```groovy
