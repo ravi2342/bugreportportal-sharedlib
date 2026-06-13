@@ -1,34 +1,25 @@
 // vars/gitCheckout.groovy
-// Git checkout and repository initialization
+// Git checkout into subdirectory
 
 def call(Map config) {
     String branch = config.branch ?: 'master'
     String repoUrl = config.repoUrl ?: ''
+    String targetDir = config.targetDir ?: 'repo'
     
-    node {
-        try {
-            echo "=== Checking out repository ==="
-            echo "Repository: ${repoUrl}"
-            echo "Branch: ${branch}"
-            
-            checkout([
-                $class: 'GitSCM',
-                branches: [[name: "*/${branch}"]],
-                userRemoteConfigs: [[url: repoUrl]],
-                poll: false
-            ])
-            
-            sh '''
-                set -e
-                echo "✓ Repository checked out"
-                echo "Workspace structure:"
-                ls -la
-            '''
-            
-            return true
-        } catch (Exception e) {
-            echo "❌ Git checkout failed: ${e.message}"
-            throw e
-        }
+    try {
+        echo "=== Checking out ${targetDir} ==="
+        echo "Repository: ${repoUrl}"
+        echo "Branch: ${branch}"
+        
+        sh """
+            set -e
+            git clone --branch ${branch} ${repoUrl} ${targetDir}
+            echo "✓ Cloned to: ${targetDir}"
+        """
+        
+        return true
+    } catch (Exception e) {
+        echo "❌ Git checkout failed: ${e.message}"
+        throw e
     }
 }
