@@ -6,11 +6,17 @@ def call(Map config) {
     String clusterContext = config.clusterContext ?: 'kind-bug-report-portal'
     String namespace = config.namespace ?: 'bug-report-portal'
     String deploymentName = config.deploymentName ?: 'bug-report-portal-app'
+    // Image name placeholder declared in kustomization.yaml's `images:` block.
+    // Distinct from the Deployment resource name — must be provided explicitly.
+    String imageName = config.imageName ?: ''
     boolean skipTlsVerify = config.skipTlsVerify != null ? config.skipTlsVerify : true
     String k8sManifestDir = config.manifestDir ?: 'devops/k8s'
     
     if (!imageTag) {
         error("imageTag is required for Kubernetes deployment")
+    }
+    if (!imageName) {
+        error("imageName is required for Kubernetes deployment (the image placeholder in kustomization.yaml's `images:` block)")
     }
     
     try {
@@ -62,7 +68,7 @@ def call(Map config) {
             cd ${k8sManifestDir}
             
             echo "Setting Docker image tag: ${imageTag}"
-            kustomize edit set image ${deploymentName}=${imageTag}
+            kustomize edit set image ${imageName}=${imageTag}
             
             echo "Applying Kubernetes manifests with dynamic image..."
             kubectl ${skipTlsVerify ? '--insecure-skip-tls-verify' : ''} apply -k .

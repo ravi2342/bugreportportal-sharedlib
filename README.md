@@ -290,7 +290,8 @@ Deploys application to Kubernetes cluster
 - `imageTag` (String): Docker image tag to deploy (required)
 - `clusterContext` (String): kubectl context name (default: 'kind-bug-report-portal')
 - `namespace` (String): Kubernetes namespace (default: 'bug-report-portal')
-- `deploymentName` (String): Deployment name (default: 'bug-report-portal-app')
+- `deploymentName` (String): Deployment resource name used by `kubectl rollout status` (default: 'bug-report-portal-app')
+- `imageName` (String): Image name placeholder declared in `kustomization.yaml`'s `images:` block, used by `kustomize edit set image` (required)
 - `skipTlsVerify` (Boolean): Skip TLS verification (default: true)
 - `manifestDir` (String): Path to k8s manifests (default: 'devops/k8s')
 
@@ -300,7 +301,8 @@ k8sDeploy(
     imageTag: 'docker.io/ravi2342/bugreportportal:1.0-123',
     clusterContext: 'kind-bug-report-portal',
     namespace: 'bug-report-portal',
-    deploymentName: 'bug-report-portal-app'
+    deploymentName: 'bug-report-portal-app',
+    imageName: 'bugreportportal'
 )
 ```
 
