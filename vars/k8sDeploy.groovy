@@ -11,6 +11,9 @@ def call(Map config) {
     String imageName = config.imageName ?: ''
     boolean skipTlsVerify = config.skipTlsVerify != null ? config.skipTlsVerify : true
     String k8sManifestDir = config.manifestDir ?: 'devops/k8s'
+    // kubectl rollout status --timeout value. Accepts any duration kubectl understands
+    // (e.g. '300s', '5m'). 120s is often too short when image pulls are slow.
+    String rolloutTimeout = config.rolloutTimeout ?: '300s'
     
     if (!imageTag) {
         error("imageTag is required for Kubernetes deployment")
@@ -74,7 +77,7 @@ def call(Map config) {
             kubectl ${skipTlsVerify ? '--insecure-skip-tls-verify' : ''} apply -k .
             
             echo "Waiting for rollout..."
-            kubectl ${skipTlsVerify ? '--insecure-skip-tls-verify' : ''} rollout status deployment/${deploymentName} -n ${namespace} --timeout=120s
+            kubectl ${skipTlsVerify ? '--insecure-skip-tls-verify' : ''} rollout status deployment/${deploymentName} -n ${namespace} --timeout=${rolloutTimeout}
             
             echo "✓ Kubernetes deployment successful"
             echo ""

@@ -294,6 +294,7 @@ Deploys application to Kubernetes cluster
 - `imageName` (String): Image name placeholder declared in `kustomization.yaml`'s `images:` block, used by `kustomize edit set image` (required)
 - `skipTlsVerify` (Boolean): Skip TLS verification (default: true)
 - `manifestDir` (String): Path to k8s manifests (default: 'devops/k8s')
+- `rolloutTimeout` (String): `kubectl rollout status --timeout` value, e.g. `'300s'`, `'5m'` (default: `'300s'`)
 
 **Example:**
 ```groovy
