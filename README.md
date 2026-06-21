@@ -181,12 +181,16 @@ preflightChecks()
 
 ---
 
-### installDeps()
+### installDeps([Map config])
 Installs npm dependencies using `npm ci`
+
+**Parameters:**
+- `workDir` (String): Directory containing `package.json` (default: `'app'`)
 
 **Example:**
 ```groovy
-installDeps()
+installDeps()                  // uses default 'app'
+installDeps(workDir: 'repo')   // for PR pipelines where the app is checked out into 'repo'
 ```
 
 ---
@@ -201,12 +205,16 @@ prismaGenerate()
 
 ---
 
-### lintAndTest()
+### lintAndTest([Map config])
 Runs ESLint and Jest tests with coverage
+
+**Parameters:**
+- `workDir` (String): Directory containing `package.json` (default: `'app'`)
 
 **Example:**
 ```groovy
 lintAndTest()
+lintAndTest(workDir: 'repo')
 ```
 
 ---
@@ -219,6 +227,9 @@ Runs SonarQube/SonarCloud analysis
 - `projectKey` (String): Project key in SonarQube (default: 'bug-report-portal')
 - `tokenCredId` (String): Jenkins credentials ID for token (default: 'sonar-token')
 - `waitForQualityGate` (Boolean): Wait for quality gate result (default: true)
+- `workDir` (String): Directory containing `sonar-project.properties` (default: `'app'`)
+- `projectBaseDir` (String): Sonar `projectBaseDir`, interpreted relative to `workDir` (default: `'.'`)
+- `extraArgs` (List<String>): Extra `-Dkey=value` flags appended to `sonar-scanner`, e.g. PR decoration args (default: `[]`)
 
 **Example:**
 ```groovy
@@ -226,7 +237,12 @@ sonarScan(
     hostUrl: 'https://sonarcloud.io',
     projectKey: 'ravi2342_bugreportportal',
     tokenCredId: 'sonarcloud-token',
-    waitForQualityGate: true
+    waitForQualityGate: true,
+    extraArgs: [
+        "-Dsonar.pullrequest.key=${env.CHANGE_ID}",
+        "-Dsonar.pullrequest.branch=${env.CHANGE_BRANCH}",
+        "-Dsonar.pullrequest.base=${env.CHANGE_TARGET}"
+    ]
 )
 ```
 
