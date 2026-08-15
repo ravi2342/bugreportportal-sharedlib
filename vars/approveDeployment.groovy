@@ -1,5 +1,5 @@
 // vars/approveDeployment.groovy
-// Handle deployment approval with approver name capture
+// Handle deployment approval with proper logging
 
 def call(Map config) {
     String environment = config.environment ?: 'DEV'
@@ -8,27 +8,23 @@ def call(Map config) {
     
     try {
         timeout(time: timeoutMins, unit: 'MINUTES') {
-            // Use BuildUser wrapper to capture who approves
-            wrap([$class: 'BuildUser']) {
-                def approver = env.BUILD_USER ?: env.BUILD_USER_ID ?: 'Unknown User'
-                
-                // Wait for approval
-                input message: "Approve deployment to ${environment} environment?",
-                    ok: "✓ Proceed with ${environment}",
-                    submitter: null
-                
-                // Log approval with captured user
-                echo ""
-                echo "═══════════════════════════════════════════════════════════"
-                echo "✓ DEPLOYMENT APPROVED BY: ${approver.toUpperCase()}"
-                echo "✓ BUILD NUMBER: #${buildNumber}"
-                echo "✓ TARGET ENVIRONMENT: ${environment}"
-                echo "✓ PROCEEDING WITH DEPLOYMENT..."
-                echo "═══════════════════════════════════════════════════════════"
-                echo ""
-            }
+            input message: "Approve deployment to ${environment} environment?",
+                ok: "✓ Proceed with ${environment}",
+                submitter: null
+            
+            // Jenkins automatically logs "Approved by USERNAME" above this message
+            // Add visual confirmation of proceeding with deployment
+            echo ""
+            echo "═══════════════════════════════════════════════════════════"
+            echo "✓ APPROVAL CONFIRMED"
+            echo "✓ BUILD NUMBER: #${buildNumber}"
+            echo "✓ TARGET ENVIRONMENT: ${environment}"
+            echo "✓ PROCEEDING WITH DEPLOYMENT..."
+            echo "═══════════════════════════════════════════════════════════"
+            echo ""
         }
     } catch (Exception e) {
         error("❌ Deployment rejected or approval timed out (${timeoutMins} min expired)")
     }
 }
+
