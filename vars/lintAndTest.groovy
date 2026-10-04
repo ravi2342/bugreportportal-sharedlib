@@ -1,5 +1,6 @@
 // vars/lintAndTest.groovy
 // Run linting and tests with coverage
+// Includes timeouts to prevent hanging
 
 def call(Map config = [:]) {
     String workDir = config.workDir ?: 'app'
@@ -12,8 +13,15 @@ def call(Map config = [:]) {
         ) == 0
         
         if (hasLint) {
-            sh "cd ${workDir} && npm run lint"
-            echo "✓ Lint passed"
+            try {
+                timeout(time: 15, unit: 'MINUTES') {
+                    sh "cd ${workDir} && npm run lint"
+                }
+                echo "✓ Lint passed"
+            } catch (Exception e) {
+                echo "❌ Lint timed out or failed after 15 minutes: ${e.message}"
+                error("Lint stage exceeded 15-minute timeout - code too large or ESLint too slow")
+            }
         } else {
             echo "⊘ No lint script configured - skipping"
         }
@@ -26,12 +34,19 @@ def call(Map config = [:]) {
         ) == 0
         
         if (hasTests) {
-            sh """
-                set -e
-                cd ${workDir}
-                npm test -- --coverage --coverageReporters=lcov --coverageReporters=text --coverageReporters=text-summary
-            """
-            echo "✓ Tests passed with coverage report at ${workDir}/coverage/lcov.info"
+            try {
+                timeout(time: 15, unit: 'MINUTES') {
+                    sh """
+                        set -e
+                        cd ${workDir}
+                        npm test -- --coverage --coverageReporters=lcov --coverageReporters=text --coverageReporters=text-summary
+                    """
+                }
+                echo "✓ Tests passed with coverage report at ${workDir}/coverage/lcov.info"
+            } catch (Exception e) {
+                echo "❌ Tests timed out or failed after 15 minutes: ${e.message}"
+                error("Test stage exceeded 15-minute timeout - tests taking too long")
+            }
         } else {
             echo "⊘ No test script configured - skipping"
         }
